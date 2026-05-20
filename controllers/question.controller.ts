@@ -15,8 +15,9 @@ export class QuestionController {
   public async getAllQuestions() {
     const pool = database.Database.getPool();
     const result = await pool.query({
-      text: `SELECT q.id, q.question, q.reponses
-             FROM trivialistes.questions q`,
+      text: `SELECT q.id, q.id_categorie, c.libelle_categorie as categorie, q.question, q.reponses
+             FROM trivialistes.questions q
+             JOIN trivialistes.categories c ON q.id_categorie = c.id`,
     });
     return result.rows;
   }

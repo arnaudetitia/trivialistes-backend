@@ -3,7 +3,7 @@ Content-Type: application/json
 
 ###
 
-GET http://localhost:3035/questions/2
+GET http://localhost:3035/questions
 Content-Type: application/json
 
 ###
