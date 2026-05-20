@@ -86,6 +86,24 @@ export class App {
       }
     });
 
+    this.app.post("/questions", async (req, res) => {
+      const idCategorie = req.body.idCategorie;
+      const question = req.body.question;
+      const reponses = req.body.reponses;
+      try {
+        await this.questionController.createQuestion(
+          idCategorie,
+          question,
+          reponses,
+        );
+        const listeQuestions = await this.questionController.getAllQuestions();
+        res.json(listeQuestions);
+      } catch (error) {
+        console.error("Erreur lors de la création d'une question ", error);
+        res.status(500).json({ error: "Erreur serveur" });
+      }
+    });
+
     this.app.get("/questions/:idCategorie", async (req, res) => {
       const idCategorie = parseInt(req.params.idCategorie);
       try {
