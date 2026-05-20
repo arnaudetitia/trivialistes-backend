@@ -29,4 +29,16 @@ export class QuestionController {
     });
     return result.rows;
   }
+
+  public async createQuestion(
+    idCategorie: number,
+    question: string,
+    reponses: string,
+  ) {
+    const pool = database.Database.getPool();
+    await pool.query({
+      text: `INSERT INTO trivialistes.questions (id_categorie,question, reponses) VALUES ($1, $2, $3)`,
+      values: [idCategorie, question, reponses],
+    });
+  }
 }
