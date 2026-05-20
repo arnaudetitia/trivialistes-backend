@@ -12,6 +12,15 @@ export class QuestionController {
     return result.rows;
   }
 
+  public async getAllQuestions() {
+    const pool = database.Database.getPool();
+    const result = await pool.query({
+      text: `SELECT q.id, q.question, q.reponses
+             FROM trivialistes.questions q`,
+    });
+    return result.rows;
+  }
+
   public async getAllMortSubites() {
     const pool = database.Database.getPool();
     const result = await pool.query({

@@ -76,6 +76,16 @@ export class App {
       }
     });
 
+    this.app.get("/questions", async (req, res) => {
+      try {
+        const listeQuestions = await this.questionController.getAllQuestions();
+        res.json(listeQuestions);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des questions ", error);
+        res.status(500).json({ error: "Erreur serveur" });
+      }
+    });
+
     this.app.get("/questions/:idCategorie", async (req, res) => {
       const idCategorie = parseInt(req.params.idCategorie);
       try {
