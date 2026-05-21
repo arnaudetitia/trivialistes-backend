@@ -10,6 +10,7 @@ export class PartieController {
                 JSON_AGG(
                     JSON_BUILD_OBJECT(
                         'categorie', cat.libelle_categorie,
+                        'idQuestion', quest.id,
                         'question', quest.question
                     )
                 ) AS liste_questions,

@@ -10,3 +10,8 @@ Content-Type: application/json
 
 GET http://localhost:3035/mort-subites
 Content-Type: application/json
+
+###
+
+GET http://localhost:3035/parties
+Content-Type: application/json
