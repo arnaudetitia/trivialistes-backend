@@ -3,6 +3,7 @@ import cors from "cors";
 import { PartieController } from "./controllers/partie.controller";
 import { CategorieController } from "./controllers/categories.controller";
 import { QuestionController } from "./controllers/question.controller";
+import dotenv from "dotenv";
 
 export class App {
   app: Application;
@@ -43,6 +44,9 @@ export class App {
 
   private setRoutes() {
     this.app.post("/admin", async (req, res) => {
+      dotenv.config({
+        path: `environments/environment.${process.env.NODE_ENV}`,
+      });
       if (req.body.mdpAdmin.localeCompare(process.env.ADMIN_PASSWORD) === 0) {
         return res.status(200).json({ success: true });
       }
