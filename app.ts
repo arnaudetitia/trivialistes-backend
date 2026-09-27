@@ -20,7 +20,24 @@ export class App {
   }
 
   private config() {
-    this.app.use(cors({}));
+    const allowedOrigins = [
+      "http://localhost:4200",
+      "https://trivialistes.onrender.com",
+    ];
+    this.app.use(
+      cors({
+        origin: (origin, callback) => {
+          if (process.env.NODE_ENV === "prod") {
+            if (origin && allowedOrigins.includes(origin)) callback(null, true);
+            else {
+              callback(new Error("Interdit"));
+            }
+          } else {
+            callback(null, true);
+          }
+        },
+      }),
+    );
     this.app.use(express.json());
   }
 
