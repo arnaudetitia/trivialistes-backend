@@ -42,4 +42,12 @@ export class QuestionController {
       values: [idCategorie, question, reponses],
     });
   }
+
+  public async createMortSubite(question: string, reponses: string) {
+    const pool = database.Database.getPool();
+    await pool.query({
+      text: `INSERT INTO trivialistes.mort_subites(question, reponses) VALUES ($1, $2)`,
+      values: [question, reponses],
+    });
+  }
 }
