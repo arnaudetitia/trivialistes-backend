@@ -14,12 +14,13 @@ export class PartieController {
                         'question', quest.question
                     )
                 ) AS liste_questions,
+                ms.id AS id_mort_subite,
                 ms.question AS question_mort_subite
             FROM trivialistes.parties part
             JOIN trivialistes.questions quest ON quest.id = ANY(part.id_questions)
             JOIN trivialistes.mort_subites ms ON part.id_mort_subite = ms.id
             JOIN trivialistes.categories cat ON quest.id_categorie = cat.id
-            GROUP BY part.id,part.nom_partie, ms.question
+            GROUP BY part.id,part.nom_partie, ms.id,ms.question
             `,
     });
     return result.rows;
