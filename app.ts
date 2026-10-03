@@ -161,6 +161,20 @@ export class App {
         res.status(500).json({ error: "Erreur serveur" });
       }
     });
+
+    this.app.post("/mort-subites", async (req, res) => {
+      const question = req.body.question;
+      const reponses = req.body.reponses;
+      try {
+        await this.questionController.createMortSubite(question, reponses);
+        const listeQuestions =
+          await this.questionController.getAllMortSubites();
+        res.json(listeQuestions);
+      } catch (error) {
+        console.error("Erreur lors de la création d'une question ", error);
+        res.status(500).json({ error: "Erreur serveur" });
+      }
+    });
   }
 
   public listen(port: number): void {
