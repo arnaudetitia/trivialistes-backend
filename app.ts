@@ -178,6 +178,27 @@ export class App {
       }
     });
 
+    this.app.post("/import/mort-subites", async (req, res) => {
+      try {
+        const csvContent = req.body.csvFileContent;
+        const doImport = req.body.doImport;
+        let erreurs: ErreurImportFichier[] =
+          await this.questionController.importQuestionsMortSubites(
+            csvContent,
+            doImport,
+          );
+        if (erreurs.length > 0) {
+          return res.json({ erreurs, questions: [] });
+        }
+        const allMortSubitesReturn =
+          await this.questionController.getAllMortSubites();
+        return res.json({ erreurs: [], questions: allMortSubitesReturn });
+      } catch (error) {
+        console.error("Erreur lors de l'import des morts subites :", error);
+        res.status(500).json({ error: "Erreur serveur" });
+      }
+    });
+
     this.app.get("/mort-subites", async (req, res) => {
       try {
         const listeMortSubites =
