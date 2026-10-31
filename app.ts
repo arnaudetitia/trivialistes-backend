@@ -4,6 +4,7 @@ import { PartieController } from "./controllers/partie.controller";
 import { CategorieController } from "./controllers/categories.controller";
 import { QuestionController } from "./controllers/question.controller";
 import dotenv from "dotenv";
+import { ErreurImportFichier } from "./models/erreur-import-fichier.model";
 
 export class App {
   app: Application;
@@ -144,6 +145,56 @@ export class App {
             idCategorie,
           error,
         );
+        res.status(500).json({ error: "Erreur serveur" });
+      }
+    });
+
+    this.app.post("/import/questions", async (req, res) => {
+      try {
+        const csvContent = req.body.csvFileContent;
+        const doImport = req.body.doImport;
+        const allCategories = await this.categorieController.getAllCategories();
+        let erreurs: ErreurImportFichier[] =
+          await this.questionController.importQuestionsManches(
+            csvContent,
+            allCategories.map((cat) => {
+              return {
+                id: Number.parseInt(cat.id),
+                libelle_categorie: cat.libelle_categorie,
+              };
+            }),
+            doImport,
+          );
+
+        if (erreurs.length > 0) {
+          return res.json({ erreurs, questions: [] });
+        }
+        const allQuestionsReturn =
+          await this.questionController.getAllQuestions();
+        return res.json({ erreurs: [], questions: allQuestionsReturn });
+      } catch (error) {
+        console.error("Erreur lors de l'import des questions :", error);
+        res.status(500).json({ error: "Erreur serveur" });
+      }
+    });
+
+    this.app.post("/import/mort-subites", async (req, res) => {
+      try {
+        const csvContent = req.body.csvFileContent;
+        const doImport = req.body.doImport;
+        let erreurs: ErreurImportFichier[] =
+          await this.questionController.importQuestionsMortSubites(
+            csvContent,
+            doImport,
+          );
+        if (erreurs.length > 0) {
+          return res.json({ erreurs, questions: [] });
+        }
+        const allMortSubitesReturn =
+          await this.questionController.getAllMortSubites();
+        return res.json({ erreurs: [], questions: allMortSubitesReturn });
+      } catch (error) {
+        console.error("Erreur lors de l'import des morts subites :", error);
         res.status(500).json({ error: "Erreur serveur" });
       }
     });

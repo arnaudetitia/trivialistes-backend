@@ -1,4 +1,12 @@
 import database = require("../database");
+import {
+  CsvColumnsReponsesManches,
+  CsvColumnsReponsesMortSubite,
+  CsvMancheColumns,
+  CsvMortSubiteColumns,
+} from "../models/csv-columns.enum";
+import { ErreurImportFichier } from "../models/erreur-import-fichier.model";
+import { CsvReaderUtil } from "../utils/csv-reader.util";
 
 export class QuestionController {
   public async getQuestionsByIdCategories(idCategorie: number) {
@@ -34,7 +42,7 @@ export class QuestionController {
   public async createQuestion(
     idCategorie: number,
     question: string,
-    reponses: string,
+    reponses: string[],
   ) {
     const pool = database.Database.getPool();
     await pool.query({
@@ -43,11 +51,116 @@ export class QuestionController {
     });
   }
 
-  public async createMortSubite(question: string, reponses: string) {
+  public async createMortSubite(question: string, reponses: string[]) {
     const pool = database.Database.getPool();
     await pool.query({
       text: `INSERT INTO trivialistes.mort_subites(question, reponses) VALUES ($1, $2)`,
       values: [question, reponses],
     });
+  }
+
+  public async importQuestionsManches(
+    csvContent: any,
+    categories: { id: number; libelle_categorie: string }[],
+    doImport: any,
+  ) {
+    const records = await CsvReaderUtil.parseRecords(csvContent);
+    const erreursImportFichier: ErreurImportFichier[] = [];
+    records.forEach((record, index) => {
+      const ligne = index + 2;
+      if (!record[CsvMancheColumns.CATEGORIE]) {
+        erreursImportFichier.push({
+          ligne,
+          type: "error",
+          message: "La catégorie de la question est manquante",
+        });
+      }
+      const categorie = categories.find(
+        (cat) =>
+          cat.libelle_categorie
+            .toUpperCase()
+            .localeCompare(record[CsvMancheColumns.CATEGORIE]) === 0,
+      );
+      if (record[CsvMancheColumns.CATEGORIE] && !categorie) {
+        erreursImportFichier.push({
+          ligne,
+          type: "error",
+          message: `La catégorie ${record[CsvMancheColumns.CATEGORIE]} n'existe pas`,
+        });
+      }
+      if (!record[CsvMancheColumns.QUESTION]) {
+        erreursImportFichier.push({
+          ligne,
+          type: "error",
+          message: "L'intitulé de la question est manquante",
+        });
+      }
+      const idReponsesManquantes = CsvColumnsReponsesManches.filter(
+        (indexReponse) => !record[indexReponse],
+      ).map((indexReponse) => indexReponse - 1);
+      if (idReponsesManquantes.length > 0) {
+        erreursImportFichier.push({
+          ligne,
+          type: "error",
+          message: `Les réponses d'index ${idReponsesManquantes.join(", ")} sont manquantes`,
+        });
+      }
+    });
+    if (doImport && erreursImportFichier.length === 0) {
+      records.forEach((record) => {
+        const categorie = categories.find(
+          (cat) =>
+            cat.libelle_categorie
+              .toUpperCase()
+              .localeCompare(record[CsvMancheColumns.CATEGORIE]) === 0,
+        );
+        if (categorie && categorie.id) {
+          this.createQuestion(
+            categorie.id,
+            record[CsvMancheColumns.QUESTION],
+            CsvColumnsReponsesManches.map(
+              (indexReponse) => record[indexReponse],
+            ),
+          );
+        }
+      });
+    }
+    return erreursImportFichier;
+  }
+
+  public async importQuestionsMortSubites(csvContent: any, doImport: any) {
+    const records = await CsvReaderUtil.parseRecords(csvContent);
+    const erreursImportFichier: ErreurImportFichier[] = [];
+    records.forEach((record, index) => {
+      const ligne = index + 2;
+      if (!record[CsvMortSubiteColumns.QUESTION]) {
+        erreursImportFichier.push({
+          ligne,
+          type: "error",
+          message: "L'intitulé de la question est manquante",
+        });
+      }
+      const idReponsesManquantes = CsvColumnsReponsesMortSubite.filter(
+        (indexReponse) => !record[indexReponse],
+      ).map((indexReponse) => indexReponse - 1);
+      if (idReponsesManquantes.length > 0) {
+        erreursImportFichier.push({
+          ligne,
+          type: "error",
+          message: `Les réponses d'index ${idReponsesManquantes.join(", ")} sont manquantes`,
+        });
+      }
+    });
+    if (doImport && erreursImportFichier.length === 0) {
+      records.forEach((record) => {
+        this.createMortSubite(
+          record[CsvMortSubiteColumns.QUESTION],
+          CsvColumnsReponsesMortSubite.map(
+            (indexReponse) => record[indexReponse],
+          ),
+        );
+      });
+    }
+    return erreursImportFichier;
   }
 }
